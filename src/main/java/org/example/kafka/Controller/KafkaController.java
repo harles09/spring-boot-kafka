@@ -6,29 +6,29 @@ import org.example.kafka.Model.Employee;
 import org.example.kafka.Services.MessageConsumerService;
 import org.example.kafka.Services.MessageProducerService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/message")
 @Slf4j
 public class KafkaController {
 
-    @Value("${spring.kafka.topic.id}")
-    private String topicId;
-
     private final MessageProducerService messageProducer;
-    private final MessageConsumerService messageConsumerService;
+    private final MessageConsumerService messageConsumer;
 
-    @PostMapping("/send")
-    public String sendMessage(@RequestBody Employee employee) {
+    @PostMapping("/send/{topicId}")
+    public String sendMessage(@PathVariable String topicId, @RequestBody Employee employee) {
         messageProducer.sendMessage(topicId, employee);
         log.info("Message Data: {}", employee);
         return "Message sent";
+    }
+
+    @GetMapping
+    public List<Object> getMessages(@RequestParam(defaultValue = "100",required = false) int count,@RequestParam String topicId ) {
+        return messageConsumer.getLastMessages(count, topicId);
     }
 
 }
