@@ -4,22 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.config.TopicBuilder;
-import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Properties;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -28,11 +25,9 @@ import java.util.concurrent.ExecutionException;
 public class KafkaTopicService {
 
     private final AdminClient adminClient;
-    private final ConfigurableApplicationContext context;
-    private String currentTopic = "initial-topic";
-    private KafkaConsumer<String, String> consumer;
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
+    private final ConsumerFactory<String, Object> consumerFactory;
+
+
 
     public void createTopic(String topicName, int partitions, short replicationFactor) {
         NewTopic newTopic = TopicBuilder.name(topicName)
@@ -47,23 +42,35 @@ public class KafkaTopicService {
         }
     }
 
-    public String changeTopic(String newTopic){
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-group");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+    public ResponseEntity<?> fetchMessagesFromTopic(String topic) {
+        if (topic == null) {
+            return ResponseEntity.badRequest().body("Invalid request: topicId is required.");
+        }
+        List<Object> messages = new ArrayList<>();
+        try (Consumer<String, Object> consumer = consumerFactory.createConsumer()) {
+            consumer.subscribe(Collections.singletonList(topic));
+            ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(2000));
 
-        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
-        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class.getName());
+            for (ConsumerRecord<String, Object> record : records) {
+                messages.add(record.value());
+            }
+        } catch (Exception e) {
+            log.error("Error fetching messages from topic {}: {}", topic, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch messages.");
+        }
 
-
-        KafkaConsumer<String, String> newConsumer = new KafkaConsumer<>(props);
-        newConsumer.subscribe(Collections.singletonList(newTopic));
-        consumer = newConsumer;
-        currentTopic = newTopic;
-
-        return "Subscribed to new topic: " + newTopic;
+        return ResponseEntity.ok(messages);
     }
+
+//    @KafkaListener(topics = "sigma", groupId = "${spring.kafka.consumer.group-id}")
+//    private void getSigmaMessage(ConsumerRecord<String, Object> record){
+//        log.info("Received message from topic 'sigma':");
+//        log.info("Key: {}", record.key());
+//        log.info("Value: {}", record.value());
+//        log.info("Partition: {}", record.partition());
+//        log.info("Offset: {}", record.offset());
+//    }
+
+
+
 }
