@@ -23,6 +23,4 @@ public class KafkaController {
         log.info("Message Data: {}", employee);
         return "Message sent";
     }
-
-
 }

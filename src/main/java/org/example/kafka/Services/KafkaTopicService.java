@@ -71,6 +71,4 @@ public class KafkaTopicService {
 //        log.info("Offset: {}", record.offset());
 //    }
 
-
-
 }
