@@ -42,15 +42,18 @@ public class KafkaTopicService {
         }
     }
 
-    public ResponseEntity<?> fetchMessagesFromTopic(String topic) {
+    public ResponseEntity<?> fetchMessagesFromTopic(String topic, String fromStart) {
         if (topic == null) {
             return ResponseEntity.badRequest().body("Invalid request: topicId is required.");
         }
         List<Object> messages = new ArrayList<>();
         try (Consumer<String, Object> consumer = consumerFactory.createConsumer()) {
             consumer.subscribe(Collections.singletonList(topic));
+            if (fromStart != null){
+                consumer.poll(Duration.ofMillis(100));
+                consumer.seekToBeginning(consumer.assignment());
+            }
             ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(2000));
-
             for (ConsumerRecord<String, Object> record : records) {
                 messages.add(record.value());
             }

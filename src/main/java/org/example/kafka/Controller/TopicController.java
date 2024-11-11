@@ -21,7 +21,8 @@ public class TopicController {
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<?> fetchMessages(@RequestParam String topic) {
-        return kafkaTopicService.fetchMessagesFromTopic(topic);
+    public ResponseEntity<?> fetchMessages(@RequestParam String topic,@RequestParam(required = false) String fromStart) {
+        return kafkaTopicService.fetchMessagesFromTopic(topic, fromStart);
     }
+
 }
