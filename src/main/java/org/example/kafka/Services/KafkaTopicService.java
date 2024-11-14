@@ -14,9 +14,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -30,9 +28,13 @@ public class KafkaTopicService {
 
 
     public void createTopic(String topicName, int partitions, short replicationFactor) {
+        Map<String, String> configs = new HashMap<>();
+        //7 hari
+        configs.put("retention.ms", String.valueOf(7 * 24 * 60 * 60 * 1000L));
         NewTopic newTopic = TopicBuilder.name(topicName)
                 .partitions(partitions)
                 .replicas(replicationFactor)
+                .configs(configs)
                 .build();
         try {
             adminClient.createTopics(Collections.singletonList(newTopic)).all().get();
