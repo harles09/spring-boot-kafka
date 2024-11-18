@@ -9,6 +9,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.stereotype.Service;
@@ -67,7 +69,7 @@ public class KafkaTopicService {
         return ResponseEntity.ok(messages);
     }
 
-//    @KafkaListener(topics = "sigma", groupId = "${spring.kafka.consumer.group-id}")
+//    @KafkaListener(topicPartitions = @TopicPartition(topic = "sigma", partitions = {"1"}))
 //    private void getSigmaMessage(ConsumerRecord<String, Object> record){
 //        log.info("Received message from topic 'sigma':");
 //        log.info("Key: {}", record.key());
@@ -75,5 +77,15 @@ public class KafkaTopicService {
 //        log.info("Partition: {}", record.partition());
 //        log.info("Offset: {}", record.offset());
 //    }
+//groupId = "${spring.kafka.consumer.group-id}"
+    public ResponseEntity<?> deleteTopic(String topicName) {
+        try {
+            adminClient.deleteTopics(Collections.singletonList(topicName)).all().get();
+            return ResponseEntity.ok("Topic " + topicName + " deleted successfully.");
+        } catch (ExecutionException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.ok("Error while deleting topic: " + e.getMessage());
+        }
+    }
 
 }

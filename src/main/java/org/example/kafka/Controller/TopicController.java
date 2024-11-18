@@ -25,4 +25,9 @@ public class TopicController {
         return kafkaTopicService.fetchMessagesFromTopic(topic, fromStart);
     }
 
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteTopic(@RequestParam String topicName){
+        return kafkaTopicService.deleteTopic(topicName);
+    }
+
 }

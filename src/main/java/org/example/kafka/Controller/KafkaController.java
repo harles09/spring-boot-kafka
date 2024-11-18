@@ -14,21 +14,22 @@ public class KafkaController {
 
     private final MessageProducerService messageProducer;
 
-    @PostMapping("/send/{topicId}")
-    public String sendMessage(@PathVariable String topicId, @RequestBody Employee employee) {
-        messageProducer.sendMessage(topicId, employee);
+    @PostMapping("/send")
+    public String sendMessage(@RequestParam String topicId, @RequestParam(required = false) Integer partitionId,
+                              @RequestParam(required = false) String uniqueKey, @RequestBody Employee employee) {
+        messageProducer.sendMessage(topicId, employee, partitionId, uniqueKey);
         log.info("Message Data: {}", employee);
         return "Message sent";
     }
 
-    @PostMapping("/autosending/{topicId}")
-    public String sendMessageAuto(@PathVariable String topicId) {
+    @PostMapping("/autosending")
+    public String sendMessageAuto(@RequestParam String topicId) {
         messageProducer.sendMessageAuto(topicId);
         return "Message sent";
     }
 
-    @PostMapping("/sendRandom/{topicId}")
-    public String sendMessageAutoRandom(@PathVariable String topicId) {
+    @PostMapping("/sendRandom")
+    public String sendMessageAutoRandom(@RequestParam String topicId) {
         messageProducer.sendMessageAutoRandom(topicId);
         return "Message sent";
     }
