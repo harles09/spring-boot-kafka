@@ -16,7 +16,7 @@ services:
       - "2181:2181"
 
   kafka:
-    image: obsidiandynamics/kafka
+    image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     restart: "no"
     networks:
@@ -24,6 +24,13 @@ services:
     ports:
       - "9092:9092"
     environment:
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER_INTERNAL:PLAINTEXT,DOCKER_EXTERNAL:PLAINTEXT
+#      KAFKA_LISTENERS: DOCKER_INTERNAL://:29092,DOCKER_EXTERNAL://:9092
+#      KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://localhost:9092
+#      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER_INTERNAL
+#      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER_INTERNAL:PLAINTEXT,DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_LISTENERS: DOCKER_INTERNAL://:29092,DOCKER_EXTERNAL://:9092
       KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
@@ -46,3 +53,32 @@ services:
       KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
       - "kafka"
+
+#  lgtm:
+#    image: grafana/otel-lgtm
+#    container_name: lgmt
+#    networks:
+#      - kafka-net
+#    ports:
+#      - '4317:4317'
+#      - '4318:4318'
+#      - '3000:3000'
+#
+#  coupon:
+#    image: spring-boot-kafka
+#    container_name: kafka-example
+#    networks:
+#      - kafka-net
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      OTEL_SERVICE_NAME: "kafka-example"
+#      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgmt:4317
+#      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+#      OTEL_RESOURCE_ATTRIBUTES: service.name=kafka-example,service.instance.id=kafka-example
+#      # Logs are disabled by default
+#      OTEL_LOGS_EXPORTER: "otlp"
+#      OTEL_METRIC_EXPORT_INTERVAL: 500
+#      OTEL_BSP_SCHEDULE_DELAY: 500
+#    depends_on:
+#      - lgtm

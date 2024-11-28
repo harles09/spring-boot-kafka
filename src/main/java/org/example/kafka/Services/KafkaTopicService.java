@@ -69,15 +69,24 @@ public class KafkaTopicService {
         return ResponseEntity.ok(messages);
     }
 
-//    @KafkaListener(topicPartitions = @TopicPartition(topic = "sigma", partitions = {"1"}))
+//    @KafkaListener(topicPartitions = @TopicPartition(topic = "test123", partitions = {"1"}))
 //    private void getSigmaMessage(ConsumerRecord<String, Object> record){
-//        log.info("Received message from topic 'sigma':");
+//        log.info("Received message from topic 'test123':");
 //        log.info("Key: {}", record.key());
 //        log.info("Value: {}", record.value());
 //        log.info("Partition: {}", record.partition());
 //        log.info("Offset: {}", record.offset());
 //    }
-//groupId = "${spring.kafka.consumer.group-id}"
+//
+//    @KafkaListener(topics = "test123",groupId = "${spring.kafka.consumer.group-id}")
+//    private void getSigmaMessage(ConsumerRecord<String, Object> record){
+//        log.info("Received message from topic 'test123':");
+//        log.info("Key: {}", record.key());
+//        log.info("Value: {}", record.value());
+//        log.info("Partition: {}", record.partition());
+//        log.info("Offset: {}", record.offset());
+//    }
+
     public ResponseEntity<?> deleteTopic(String topicName) {
         try {
             adminClient.deleteTopics(Collections.singletonList(topicName)).all().get();
